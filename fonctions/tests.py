@@ -6,9 +6,9 @@ import matplotlib.pyplot as plt
 from geometry import Chaine_initiale
 
 "Plot"
-x, y, etat = Chaine_initiale(50, 10e-6)
+x, y, etat = Chaine_initiale(100, 10)
 couleurs = ['g' if e == 1 else 'r' for e in etat]
-plt.scatter(x, y, c=couleurs, s=50)
+plt.scatter(x, y, c=couleurs, s=3)
 plt.gca().set_aspect('equal')
 plt.show()
 
