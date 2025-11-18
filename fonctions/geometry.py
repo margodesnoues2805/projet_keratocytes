@@ -11,8 +11,8 @@ On initialise une chaine de N maillons equirepartis sur un cercle de rayon R.
             R : le rayon du cercle initial (float) en microns
             
     La fonction renvoie : 
-            x et y : coordonnees xi et yi de chaque maillons Mi (np.ndarray) 
-            etat : etats (+1 := protusion ou -1 := rectraction) de chaque maillon Mi (np.ndarray) 
+            x et y : coordonnees xi et yi de chaque maillons Mi a t=0 (np.ndarray) 
+            etat : etats (+1 := protusion ou -1 := rectraction) de chaque maillon Mi a t=0 (np.ndarray) 
 """
 
 def Chaine_initiale(N, R):
@@ -36,8 +36,8 @@ def Chaine_initiale(N, R):
  Attention, on cherche le centre de gravite de la cellule et pas le barycentre geometrique. 
 
     Les arguments sont :
-            x : abcisses x[i] de chaque maillons Mi (np.ndarray) 
-            y : ordonnees y[i] de chaque maillons Mi (np.ndarray) 
+            x : abcisses x[i] de chaque maillons Mi en t (np.ndarray) 
+            y : ordonnees y[i] de chaque maillons Mi en t (np.ndarray) 
  
     La fonction renvoie : 
             aire : aire du polygone fermé (float)
@@ -73,29 +73,22 @@ def Calcul_Aire_Barycentre(x, y):
 
 #----------------------DEPLACEMENT DES MAILLONS-----------------------
 
-    """
-    Déplace tous les maillons d'une étape de manière vectorisée.
-
-    Paramètres
-    ----------
-    x, y : np.ndarray
-        Coordonnées des maillons
-    eta : np.ndarray
-        États (+1 protrusion, -1 rétraction)
-    v_plus : float
-        Vitesse des maillons en protrusion
-    v_moins : fonction
-        Fonction v_moins(r) pour maillons en rétraction
-    mode : str, 'perp' ou 'centrifuge'
-        Méthode de déplacement pour les protrusions :
-        - 'perp' : perpendiculaire à la chaîne
-        - 'centrifuge' : radial depuis le barycentre
-
-    Retourne
-    -------
-    x_t_1, y_t_1 : np.ndarray
-        Nouvelles positions
-    """
+"""                  
+On calcul le deplacement entre t et t+1 pour chaque maillon Mi selon son etat,
+puis on calcule les nouvelles coordonnees de chaque maillon.
+        
+        Les arguments sont :
+            x : abcisses x[i] de chaque maillons Mi en t (np.ndarray) 
+            y : ordonnees y[i] de chaque maillons Mi en t (np.ndarray)
+            etat : etats (+1 := protusion ou -1 := rectraction) de chaque maillon Mi en t (np.ndarray)
+            v_plus : vitesse des maillons en protusion (float)
+            v_moins : vitesse des maillons en retraction (proportionnel a la distance entre Mi et G) 
+            mode : mode de deplacement des maillons en protusion ('perpendiculaire' ou 'centrifuge')
+            
+        La fonction renvoie : 
+            x_t1 : abcisses x[i] de chaque maillons Mi en t+1 (np.ndarray) 
+            y_t1 : ordonnees y[i] de chaque maillons Mi en t+1 (np.ndarray)
+"""
 
 def deplacement_maillons_vector(x, y, etat, v_plus, v_moins, mode='perp'):
 
@@ -105,15 +98,16 @@ def deplacement_maillons_vector(x, y, etat, v_plus, v_moins, mode='perp'):
     y_t1 = np.copy(y)
 
     # Calcul du barycentre
-    aire, xG, yG = calcul_aire_barycentre(x, y)
+    aire, xG, yG = Calcul_Aire_Barycentre(x, y)
 
     # Masque des protrusions et rétractions
     masque_plus = etat == 1
     masque_moins = etat == -1
 
-    # -----------------------------
-    # Déplacement protrusions
-    # -----------------------------
+
+
+    # -------Protusion-------
+
     if mode == 'perpendiculaire':
         indices_precedent = np.roll(np.arange(N), 1)
         indices_suivant = np.roll(np.arange(N), -1)
@@ -131,32 +125,37 @@ def deplacement_maillons_vector(x, y, etat, v_plus, v_moins, mode='perp'):
         #nouveau tableau pour avoir les distances 
         vx_plus = np.zeros_like(dx)
         vy_plus = np.zeros_like(dy)
-        #masque pour eviter division par zero
+        #masque pour eviter division par zero si jamais un point est proche du barycentre
         masque_nonzero = norme > 0
-        vx_plus[masque_nonzero] = v_plus * dx[masque_nonzero] / norme[masque_nonzero]
-        vy_plus[masque_nonzero] = v_plus * dy[masque_nonzero] / norme[masque_nonzero]
+        # vecteurs de deplacement
+        vecteur_x_plus[masque_nonzero] = v_plus * dx[masque_nonzero] / norme[masque_nonzero]
+        vecteur_y_plus[masque_nonzero] = v_plus * dy[masque_nonzero] / norme[masque_nonzero]
 
     else:
-        raise ValueError("mode doit être 'perp' ou 'centrifuge'")
+        raise ValueError("Donner un mode de deplacement parmis : 'perpendiculaire' ou 'centrifuge'")
 
-    # Appliquer seulement aux protrusions
-    x_t1[mask_plus] += vx_plus[mask_plus]
-    y_t1[mask_plus] += vy_plus[mask_plus]
+    # On applique le deplacement aux protrusions
+    x_t1[masque_plus] += vecteur_x_plus[masque_plus]
+    y_t1[masque_plus] += vecteur_y_plus[masque_plus]
 
-    # -----------------------------
-    # Déplacement rétractions
-    # -----------------------------
-    dx_minus = x[mask_minus] - xG
-    dy_minus = y[mask_minus] - yG
-    r = np.sqrt(dx_minus**2 + dy_minus**2)
 
-    vx_minus = np.zeros_like(dx_minus)
-    vy_minus = np.zeros_like(dy_minus)
+
+    # -------Retraction-------
+    
+    dx_G = x[masque_moins] - xG
+    dy_G = y[masque_plus] - yG
+    r = np.sqrt(dx_G**2 + dy_G**2)
+    #nouveau tableau pour avoir les distances
+    vecteur_x_moins = np.zeros_like(dx_G)
+    vecteur_y_moins = np.zeros_like(dy_G)
+    #masque pour eviter division par zero si jamais un point est proche du barycentre
     nonzero = r > 0
-    vx_minus[nonzero] = -v_moins(r[nonzero]) * dx_minus[nonzero] / r[nonzero]
-    vy_minus[nonzero] = -v_moins(r[nonzero]) * dy_minus[nonzero] / r[nonzero]
+    # vecteurs de deplacement
+    vecteur_x_moins[nonzero] = -v_moins(r[nonzero]) * dx_G[nonzero] / r[nonzero]
+    vecteur_y_moins[nonzero] = -v_moins(r[nonzero]) * dy_G[nonzero] / r[nonzero]
 
-    x_t1[mask_minus] += vx_minus
-    y_t1[mask_minus] += vy_minus
+    # On applique le deplacement aux retractions
+    x_t1[masque_moins] += vecteur_x_moins
+    y_t1[masque_moins] += vecteur_y_moins
 
-    return x_t_1, y_t_1
+    return x_t1, y_t1
