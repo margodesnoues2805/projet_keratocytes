@@ -1,5 +1,5 @@
 import numpy as np
-
+from numba import jit
 
 #---------------------INITIALISATION DE LA CHAINE---------------------
 
@@ -43,7 +43,7 @@ def Chaine_initiale(N, R):
             aire : aire du polygone fermé (float)
             xG et yG : coordonnees xG et yG du barycentre G (float)
 """
-    
+@jit     
 def Calcul_Aire_Barycentre(x, y):
 
     # Initialisation des variables
@@ -90,7 +90,8 @@ puis on calcule les nouvelles coordonnees de chaque maillon.
             y_t1 : ordonnees y[i] de chaque maillons Mi en t+1 (np.ndarray)
 """
 
-def deplacement_maillons_vector(x, y, etat, v_plus, v_moins, mode='perp'):
+@jit
+def deplacement_maillons_vector(x, y, etat, v_plus, v_moins, mode='perpendiculaire'):
 
     # Initialisation des variables
     N = len(x)
