@@ -56,10 +56,10 @@ def Calcul_Aire_Barycentre(x, y):
     for i in range(N):
         # on trouve le point suivant : i+1
         j = (i + 1) % N # modulo N 
-        cross = (x[i] * y[j]) - (x[j] * y[i])
-        aire += cross
-        somme_xG += (x[i] + x[j]) * cross
-        somme_yG += (y[i] + y[j]) * cross
+        p_vectoriel = (x[i] * y[j]) - (x[j] * y[i])
+        aire += p_vectoriel
+        somme_xG += (x[i] + x[j]) * p_vectoriel
+        somme_yG += (y[i] + y[j]) * p_vectoriel
 
     # Calcul de l'aire totale de la cellule
     aire = aire * 0.5
@@ -124,8 +124,8 @@ def deplacement_maillons_vector(x, y, etat, v_plus, v_moins, mode='perpendiculai
         dy = y - yG
         norme = np.sqrt(dx**2 + dy**2)
         #nouveau tableau pour avoir les distances 
-        vx_plus = np.zeros_like(dx)
-        vy_plus = np.zeros_like(dy)
+        vecteur_x_plus = np.zeros_like(dx)
+        vecteur_y_plus = np.zeros_like(dy)
         #masque pour eviter division par zero si jamais un point est proche du barycentre
         masque_nonzero = norme > 0
         # vecteurs de deplacement
@@ -143,17 +143,17 @@ def deplacement_maillons_vector(x, y, etat, v_plus, v_moins, mode='perpendiculai
 
     # -------Retraction-------
     
-    dx_G = x[masque_moins] - xG
-    dy_G = y[masque_plus] - yG
-    r = np.sqrt(dx_G**2 + dy_G**2)
+    dx_G = x - xG
+    dy_G = y - yG
+    distance = np.sqrt(dx_G**2 + dy_G**2)
     #nouveau tableau pour avoir les distances
     vecteur_x_moins = np.zeros_like(dx_G)
     vecteur_y_moins = np.zeros_like(dy_G)
     #masque pour eviter division par zero si jamais un point est proche du barycentre
-    nonzero = r > 0
+    nonzero = distance > 0
     # vecteurs de deplacement
-    vecteur_x_moins[nonzero] = -v_moins(r[nonzero]) * dx_G[nonzero] / r[nonzero]
-    vecteur_y_moins[nonzero] = -v_moins(r[nonzero]) * dy_G[nonzero] / r[nonzero]
+    vecteur_x_moins[nonzero] = -v_moins(distance[nonzero]) * dx_G[nonzero] / distance[nonzero]
+    vecteur_y_moins[nonzero] = -v_moins(distance[nonzero]) * dy_G[nonzero] / distance[nonzero]
 
     # On applique le deplacement aux retractions
     x_t1[masque_moins] += vecteur_x_moins
