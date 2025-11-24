@@ -1,5 +1,6 @@
 import numpy as np
 from numba import jit
+from utils import vitesse_moins
 
 #---------------------INITIALISATION DE LA CHAINE---------------------
 
@@ -90,8 +91,7 @@ puis on calcule les nouvelles coordonnees de chaque maillon.
             y_t1 : ordonnees y[i] de chaque maillons Mi en t+1 (np.ndarray)
 """
 
-@jit
-def deplacement_maillons_vector(x, y, etat, v_plus, v_moins, mode='perpendiculaire'):
+def deplacement_maillons_vector(x, y, etat, v_plus, R_plus, R_moins, mode='perpendiculaire'):
 
     # Initialisation des variables
     N = len(x)
@@ -115,22 +115,23 @@ def deplacement_maillons_vector(x, y, etat, v_plus, v_moins, mode='perpendiculai
         dx = x[indices_suivant] - x[indices_precedent]
         dy = y[indices_suivant] - y[indices_precedent]
         norme = np.sqrt((-dy)**2 + (dx)**2)
-        vecteur_x_plus = v_plus * ((-dy) / norme)
-        vecteur_y_plus = v_plus * ((dx) / norme)
-        #vecteur (-dy,dx) normalise * norme de vitesse
+        # Eviter division par zero
+        norme[norme == 0] = 1.0
+        vecteur_x_plus = v_plus * ((dy) / norme)
+        vecteur_y_plus = v_plus * ((-dx) / norme)
+        #vecteur (dy,-dx) normalise * norme de vitesse
+        
 
     elif mode == 'centrifuge':
         dx = x - xG
         dy = y - yG
         norme = np.sqrt(dx**2 + dy**2)
         #nouveau tableau pour avoir les distances 
-        vx_plus = np.zeros_like(dx)
-        vy_plus = np.zeros_like(dy)
-        #masque pour eviter division par zero si jamais un point est proche du barycentre
-        masque_nonzero = norme > 0
+        vecteur_x_plus = np.zeros_like(dx)
+        vecteur_y_plus = np.zeros_like(dy)
         # vecteurs de deplacement
-        vecteur_x_plus[masque_nonzero] = v_plus * dx[masque_nonzero] / norme[masque_nonzero]
-        vecteur_y_plus[masque_nonzero] = v_plus * dy[masque_nonzero] / norme[masque_nonzero]
+        vecteur_x_plus = v_plus * dx / norme
+        vecteur_y_plus = v_plus * dy / norme
 
     else:
         raise ValueError("Donner un mode de deplacement parmis : 'perpendiculaire' ou 'centrifuge'")
@@ -143,20 +144,22 @@ def deplacement_maillons_vector(x, y, etat, v_plus, v_moins, mode='perpendiculai
 
     # -------Retraction-------
     
-    dx_G = x[masque_moins] - xG
-    dy_G = y[masque_plus] - yG
-    r = np.sqrt(dx_G**2 + dy_G**2)
+    dx_G = x - xG
+    dy_G = y - yG
+    distance = np.sqrt(dx_G**2 + dy_G**2)
     #nouveau tableau pour avoir les distances
     vecteur_x_moins = np.zeros_like(dx_G)
     vecteur_y_moins = np.zeros_like(dy_G)
     #masque pour eviter division par zero si jamais un point est proche du barycentre
-    nonzero = r > 0
+    nonzero = distance > 0
+    # tableau des vitesses
+    v_moins = vitesse_moins(distance, R_plus, R_moins, v_plus)
     # vecteurs de deplacement
-    vecteur_x_moins[nonzero] = -v_moins(r[nonzero]) * dx_G[nonzero] / r[nonzero]
-    vecteur_y_moins[nonzero] = -v_moins(r[nonzero]) * dy_G[nonzero] / r[nonzero]
+    vecteur_x_moins[nonzero] = - v_moins[nonzero] * dx_G[nonzero] / distance[nonzero]
+    vecteur_y_moins[nonzero] = - v_moins[nonzero] * dy_G[nonzero] / distance[nonzero]
 
     # On applique le deplacement aux retractions
-    x_t1[masque_moins] += vecteur_x_moins
-    y_t1[masque_moins] += vecteur_y_moins
+    x_t1[masque_moins] += vecteur_x_moins[masque_moins]
+    y_t1[masque_moins] += vecteur_y_moins[masque_moins]
 
-    return x_t1, y_t1
+    return x_t1, y_t1, aire, xG, yG
