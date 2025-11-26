@@ -57,10 +57,10 @@ def Calcul_Aire_Barycentre(x, y):
     for i in range(N):
         # on trouve le point suivant : i+1
         j = (i + 1) % N # modulo N 
-        cross = (x[i] * y[j]) - (x[j] * y[i])
-        aire += cross
-        somme_xG += (x[i] + x[j]) * cross
-        somme_yG += (y[i] + y[j]) * cross
+        p_vectoriel = (x[i] * y[j]) - (x[j] * y[i])
+        aire += p_vectoriel
+        somme_xG += (x[i] + x[j]) * p_vectoriel
+        somme_yG += (y[i] + y[j]) * p_vectoriel
 
     # Calcul de l'aire totale de la cellule
     aire = aire * 0.5
@@ -129,6 +129,11 @@ def deplacement_maillons_vector(x, y, etat, v_plus, R_plus, R_moins, mode='perpe
         #nouveau tableau pour avoir les distances 
         vecteur_x_plus = np.zeros_like(dx)
         vecteur_y_plus = np.zeros_like(dy)
+<<<<<<< HEAD
+=======
+        #masque pour eviter division par zero si jamais un point est proche du barycentre
+        masque_nonzero = norme > 0
+>>>>>>> 09c08f219e7d45a65e12e55175cd612509756113
         # vecteurs de deplacement
         vecteur_x_plus = v_plus * dx / norme
         vecteur_y_plus = v_plus * dy / norme
@@ -152,11 +157,17 @@ def deplacement_maillons_vector(x, y, etat, v_plus, R_plus, R_moins, mode='perpe
     vecteur_y_moins = np.zeros_like(dy_G)
     #masque pour eviter division par zero si jamais un point est proche du barycentre
     nonzero = distance > 0
+<<<<<<< HEAD
     # tableau des vitesses
     v_moins = vitesse_moins(distance, R_plus, R_moins, v_plus)
     # vecteurs de deplacement
     vecteur_x_moins[nonzero] = - v_moins[nonzero] * dx_G[nonzero] / distance[nonzero]
     vecteur_y_moins[nonzero] = - v_moins[nonzero] * dy_G[nonzero] / distance[nonzero]
+=======
+    # vecteurs de deplacement
+    vecteur_x_moins[nonzero] = -v_moins(distance[nonzero]) * dx_G[nonzero] / distance[nonzero]
+    vecteur_y_moins[nonzero] = -v_moins(distance[nonzero]) * dy_G[nonzero] / distance[nonzero]
+>>>>>>> 09c08f219e7d45a65e12e55175cd612509756113
 
     # On applique le deplacement aux retractions
     x_t1[masque_moins] += vecteur_x_moins[masque_moins]
