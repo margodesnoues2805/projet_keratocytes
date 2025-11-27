@@ -38,19 +38,16 @@ import matplotlib.pyplot as plt
 
 from geometry import Chaine_initiale, deplacement_maillons_vector
 
-# -----------------------------
-# PARAMÈTRES DU TEST
-# -----------------------------
+# Parametres
 N = 30              # nombre de maillons
-R = 10.0
-R_plus = 1.0
-R_moins = 0.25
+R = 10.0            # rayon initial
+R_plus = 1.0        # rayon max de protusion
+R_moins = 0.25      # rayon min de retraction
 v_plus = 1.0        # vitesse des protrusions
 n_steps = 1        # nombre de pas de temps
 
-# -----------------------------
-# 1) Initialisation
-# -----------------------------
+
+# Initialisation
 x, y, etat = Chaine_initiale(N, R)
 
 print("Positions initiales (x, y) :")
@@ -58,32 +55,24 @@ print(np.column_stack((x, y)))
 print("État des maillons :")
 print(etat)
 
-# Stocker l'historique pour affichage des déplacements
+# Stockage de l'historique des positions
 x_hist = [x.copy()]
 y_hist = [y.copy()]
 
-# -----------------------------
-# 2) Boucle de déplacement
-# -----------------------------
+# Boucle de deplacement 
 for t in range(n_steps):
-    x, y = deplacement_maillons_vector(x, y, etat, v_plus, R_plus, R_moins, mode='centrifuge')
+    x, y, aire, xG, yG = deplacement_maillons_vector(x, y, etat, v_plus, R_plus, R_moins, mode='centrifuge')
     x_hist.append(x.copy())
     y_hist.append(y.copy())
 
-# -----------------------------
-# 3) Affichage avant/après
-# -----------------------------
+# Affichage deplacements
 plt.figure(figsize=(7,7))
 couleurs = ['g' if e == 1 else 'r' for e in etat]
 
-# Positions initiales
-plt.scatter(x_hist[0], y_hist[0], c=couleurs, s=60, label='t=0', edgecolor='k')
+plt.scatter(x_hist[0], y_hist[0], c=couleurs, s=60, label='t=0', edgecolor='k') # Positions initiales
+plt.scatter(x_hist[-1], y_hist[-1], c=couleurs, s=60, label=f't={n_steps}', marker='x') # Positions finales
 
-# Positions finales
-plt.scatter(x_hist[-1], y_hist[-1], c=couleurs, s=60, label=f't={n_steps}', marker='x')
-
-# Lignes pour visualiser tous les déplacements
-for i in range(N):
+for i in range(N): # Lignes des déplacements
     xi_list = [x_hist[k][i] for k in range(n_steps+1)]
     yi_list = [y_hist[k][i] for k in range(n_steps+1)]
     plt.plot(xi_list, yi_list, 'gray', linestyle='--', linewidth=1)
@@ -93,8 +82,6 @@ plt.gca().set_aspect('equal')
 plt.legend()
 plt.show()
 
-# -----------------------------
-# 4) Vérification des tableaux finaux
-# -----------------------------
+# Verifications
 print("\nPositions finales après", n_steps, "pas :")
 print(np.column_stack((x, y)))

@@ -220,15 +220,17 @@ les maillons les plus eloignes ('distance').
             
 """ 
     
-def elimination_boucles(x, y, etat, xG, yG, mode_reinsertion="random"):
-
+def elimination_boucles(x, y, etat, xG, yG, R_plus, R_moins, V, mode_reinsertion="random"):
+    
+    # Parametres
     N = len(x)
-    x = list(x) # on peux pop() un élément dans une liste → pas dans un ndarray
+    x = list(x) # on peux pop() un élément dans une liste 
     y = list(y)
     etat = list(etat)
 
     candidats = []  # indices à supprimer
 
+    # Recherche des boucles
     i = 0
     while i < len(x):
         M1 = i
@@ -243,7 +245,7 @@ def elimination_boucles(x, y, etat, xG, yG, mode_reinsertion="random"):
         else:
             i += 1
 
-    # S'il n'y a pas de boucle
+    # Si pas de boucle
     if len(candidats) == 0:
         return np.array(x), np.array(y), np.array(etat)
 
@@ -273,8 +275,16 @@ def elimination_boucles(x, y, etat, xG, yG, mode_reinsertion="random"):
         nv_indice = (indice_reinsertion + 1) % N_sans_boucles
         x_reinsertion = (x[indice_reinsertion] + x[nv_indice]) / 2
         y_reinsertion = (y[indice_reinsertion] + y[nv_indice]) / 2
-        etat_reinsertion = np.random.choice([-1, 1])  # état tiré au sort
+        
+        #Calcul de la distance
+        dx_G = x_reinsertion - xG
+        dy_G = y_reinsertion - yG
+        distance = np.sqrt(dx_G**2 + dy_G**2)
+        
+        # Calcul nv etat
+        etat_reinsertion = chgmt_etat_plus(k, etat, distance, R_plus, V) if etat(k) == 1 else chgmt_etat_moins(k, etat, distance, R_moins, V)
 
+        # Insertion
         x.insert(nv_indice, x_reinsertion)
         y.insert(nv_indice, y_reinsertion)
         etat.insert(nv_indice, etat_reinsertion)
