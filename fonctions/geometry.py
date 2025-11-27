@@ -1,6 +1,6 @@
 import numpy as np
 from numba import jit
-from utils import vitesse_moins
+from utils import vitesse_moins, signe_angle, chgmt_etat_plus, chgmt_etat_moins
 
 #---------------------INITIALISATION DE LA CHAINE---------------------
 
@@ -56,7 +56,7 @@ def Calcul_Aire_Barycentre(x, y):
     # Calcul de la somme des produits vectoriels
     for i in range(N):
         # on trouve le point suivant : i+1
-        j = (i + 1) % N # modulo N 
+        j = (i + 1) %N # modulo N 
         p_vectoriel = (x[i] * y[j]) - (x[j] * y[i])
         aire += p_vectoriel
         somme_xG += (x[i] + x[j]) * p_vectoriel
@@ -105,8 +105,6 @@ def deplacement_maillons_vector(x, y, etat, v_plus, R_plus, R_moins, mode='perpe
     masque_plus = etat == 1
     masque_moins = etat == -1
 
-
-
     # -------Protusion-------
 
     if mode == 'perpendiculaire':
@@ -121,7 +119,7 @@ def deplacement_maillons_vector(x, y, etat, v_plus, R_plus, R_moins, mode='perpe
         vecteur_y_plus = v_plus * ((-dx) / norme)
         #vecteur (dy,-dx) normalise * norme de vitesse
         
-
+        
     elif mode == 'centrifuge':
         dx = x - xG
         dy = y - yG
@@ -129,11 +127,6 @@ def deplacement_maillons_vector(x, y, etat, v_plus, R_plus, R_moins, mode='perpe
         #nouveau tableau pour avoir les distances 
         vecteur_x_plus = np.zeros_like(dx)
         vecteur_y_plus = np.zeros_like(dy)
-<<<<<<< HEAD
-=======
-        #masque pour eviter division par zero si jamais un point est proche du barycentre
-        masque_nonzero = norme > 0
->>>>>>> 09c08f219e7d45a65e12e55175cd612509756113
         # vecteurs de deplacement
         vecteur_x_plus = v_plus * dx / norme
         vecteur_y_plus = v_plus * dy / norme
@@ -145,8 +138,6 @@ def deplacement_maillons_vector(x, y, etat, v_plus, R_plus, R_moins, mode='perpe
     x_t1[masque_plus] += vecteur_x_plus[masque_plus]
     y_t1[masque_plus] += vecteur_y_plus[masque_plus]
 
-
-
     # -------Retraction-------
     
     dx_G = x - xG
@@ -157,20 +148,140 @@ def deplacement_maillons_vector(x, y, etat, v_plus, R_plus, R_moins, mode='perpe
     vecteur_y_moins = np.zeros_like(dy_G)
     #masque pour eviter division par zero si jamais un point est proche du barycentre
     nonzero = distance > 0
-<<<<<<< HEAD
     # tableau des vitesses
     v_moins = vitesse_moins(distance, R_plus, R_moins, v_plus)
     # vecteurs de deplacement
     vecteur_x_moins[nonzero] = - v_moins[nonzero] * dx_G[nonzero] / distance[nonzero]
     vecteur_y_moins[nonzero] = - v_moins[nonzero] * dy_G[nonzero] / distance[nonzero]
-=======
-    # vecteurs de deplacement
-    vecteur_x_moins[nonzero] = -v_moins(distance[nonzero]) * dx_G[nonzero] / distance[nonzero]
-    vecteur_y_moins[nonzero] = -v_moins(distance[nonzero]) * dy_G[nonzero] / distance[nonzero]
->>>>>>> 09c08f219e7d45a65e12e55175cd612509756113
 
     # On applique le deplacement aux retractions
     x_t1[masque_moins] += vecteur_x_moins[masque_moins]
     y_t1[masque_moins] += vecteur_y_moins[masque_moins]
 
     return x_t1, y_t1, aire, xG, yG
+
+#----------------------Changement des etats------------------------
+"""
+ On change l'etat de chaque maillon Mi apres deplacement selon les regles definies.
+
+    Les arguments sont :
+            x : abcisses x[i] de chaque maillons Mi en t+1 (np.ndarray) 
+            y : ordonnees y[i] de chaque maillons Mi en t+1 (np.ndarray)
+            etat : etats de chaque maillon Mi en t (np.ndarray)
+            R_plus : rayon maximal de protusion (float)
+            R_moins : rayon minimal de retraction (float)
+            xG et yG : coordonnees xG et yG du barycentre G (float)
+            V : nombre de plus proches voisins ppv (multiple de 2) (int)
+ 
+    La fonction renvoie : 
+            nv_etat : nouveaux etats de chaque maillon Mi en t+1 (np.ndarray)
+"""
+
+def changement_etat(x, y, etat, R_plus, R_moins, xG, yG, V):
+    
+    # Parametres
+    N = len(etat)
+
+    # Initialisation
+    nv_etat = np.copy(etat)
+    dx_G = x - xG
+    dy_G = y - yG
+    distance = np.sqrt(dx_G**2 + dy_G**2)
+    
+    for i in range(N): 
+    
+        # -------Protusion-------
+        if etat[i]== 1 :
+            nv_etat[i] = chgmt_etat_plus(i, etat, distance[i], R_plus, V)
+        
+         # -------Retraction-------
+        if etat[i]== -1 :
+             nv_etat[i] = chgmt_etat_moins(i, etat, distance[i], R_moins, V)
+             
+    return nv_etat
+
+#---------------------Elimination des boucles----------------------
+
+"""
+On supprime les maillons Mi créant des boucle (angle négatif) puis les 
+réinsère selon le mode choisi : de maniere aleatoire ('random') ou entre 
+les maillons les plus eloignes ('distance').
+
+        Les arguments sont :
+            x : abcisses x[i] de chaque maillons Mi en t+1 (np.ndarray) 
+            y : ordonnees y[i] de chaque maillons Mi en t+1 (np.ndarray)
+            etat : etats (+1 := protusion ou -1 := rectraction) de chaque maillon Mi en t+1 (np.ndarray)
+            mode_reinsertion : 'random' ou 'distance'
+
+        La fonction renvoie : 
+            x : abcisses sans boucles x[i] de chaque maillons Mi en t+1 (np.ndarray) 
+            y : ordonnees sans boucles y[i] de chaque maillons Mi en t+1 (np.ndarray)
+            etat : etats sans boucles de chaque maillon Mi en t+1 (np.ndarray)
+            
+""" 
+    
+def elimination_boucles(x, y, etat, xG, yG, mode_reinsertion="random"):
+
+    N = len(x)
+    x = list(x) # on peux pop() un élément dans une liste → pas dans un ndarray
+    y = list(y)
+    etat = list(etat)
+
+    candidats = []  # indices à supprimer
+
+    i = 0
+    while i < len(x):
+        M1 = i
+        M2 = (i + 1) % len(x)
+        produit_vect = signe_angle(x[M1], y[M1], x[M2], y[M2], xG, yG)
+
+        if produit_vect < 0:
+            candidats.append(M2)
+            x.pop(M2)
+            y.pop(M2)
+            etat.pop(M2)
+        else:
+            i += 1
+
+    # S'il n'y a pas de boucle
+    if len(candidats) == 0:
+        return np.array(x), np.array(y), np.array(etat)
+
+    # Nombre de maillons restants
+    N_sans_boucles = len(x)
+
+    # Réinsertion des maillons supprimes
+    for k in range(len(candidats)):
+        
+        if mode_reinsertion == "random":
+            # on reinsert au hasard
+            indice_reinsertion = np.random.randint(0, N_sans_boucles)
+            
+        elif mode_reinsertion == "distance":
+            # on cherche la plus grande distance entre deux maillons consécutifs
+            distances = []
+            for i in range(N_sans_boucles):
+                j = (i + 1) % N_sans_boucles
+                d = np.sqrt((x[j] - x[i])**2 + (y[j] - y[i])**2)
+                distances.append(d)
+            indice_reinsertion = np.argmax(distances)
+            
+        else:
+            raise ValueError("mode_reinsert doit être 'random' ou 'distance'")
+
+        # on insert au milieu du segment (indice_reinsertion → indice_reinsertion+1)
+        nv_indice = (indice_reinsertion + 1) % N_sans_boucles
+        x_reinsertion = (x[indice_reinsertion] + x[nv_indice]) / 2
+        y_reinsertion = (y[indice_reinsertion] + y[nv_indice]) / 2
+        etat_reinsertion = np.random.choice([-1, 1])  # état tiré au sort
+
+        x.insert(nv_indice, x_reinsertion)
+        y.insert(nv_indice, y_reinsertion)
+        etat.insert(nv_indice, etat_reinsertion)
+        N_sans_boucles += 1
+    
+    # verification
+    if N_sans_boucles != N :
+        print("Erreur lors de l'elimination des boucles !")
+
+    return np.array(x), np.array(y), np.array(etat) 
