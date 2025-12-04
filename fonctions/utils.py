@@ -20,8 +20,7 @@ from numba import jit
 def vitesse_moins(distance, v_plus, R_plus, R_moins):
 
     # Calcul 
-    calcul_1 = -7 * distance**2 + 14 * R_plus * distance + \
-        R_plus**2 + 8 * R_moins * (R_moins - 2 * R_plus)
+    calcul_1 = -7 * distance**2 + 14 * R_plus * distance + R_plus**2 + 8 * R_moins * (R_moins - 2 * R_plus)
     calcul_2 = 4 * (R_plus - R_moins)**2
 
     # Vitesse moins
@@ -40,9 +39,6 @@ def vitesse_moins(distance, v_plus, R_plus, R_moins):
 regles suivantes :
                      P = 1 si (MiG) > R+
                      P = n-/V si (MiG) < R+
-                                        
-                     - Pour les Mi(-1): P = 1 si (MiG) < R-
-                                        P = n+/V si (MiG) > R-
 
     Les arguments sont :
             i : indice du maillon
@@ -66,9 +62,11 @@ def chgmt_etat_plus(i, etat, distance, R_plus, V):
     # Code
     if distance >= R_plus : # Cas (MiG) > R+ => P(+1 -> -1) = 1
         nv_etat_Mi_plus = -1 
+        #print("flag1")
     else : # Cas (MiG) < R+ => P(+1 -> -1) = n-/V
         n_moins = sum(etat[j] == -1 for j in ppv)
-        nv_etat_Mi_plus == -1 if np.random.rand() < (n_moins/V) else 1
+        nv_etat_Mi_plus = -1 if np.random.rand() < (n_moins/V) else 1
+        #print("flag2")
         
     return nv_etat_Mi_plus
 
@@ -103,9 +101,11 @@ def chgmt_etat_moins(i, etat, distance, R_moins, V):
     # Code
     if distance <= R_moins : # Cas (MiG) < R- => P(-1 -> +1) = 1
         nv_etat_Mi_moins = 1 
+        #print("flag3")
     else : # Cas (MiG) > R- => P(-1 -> +1) = n+/V
         n_plus = sum(etat[j] == 1 for j in ppv)
-        nv_etat_Mi_moins == 1 if np.random.rand() < (n_plus/V) else -1
+        nv_etat_Mi_moins = 1 if np.random.rand() < (n_plus/V) else -1
+        #print("flag4")
         
     return nv_etat_Mi_moins
 

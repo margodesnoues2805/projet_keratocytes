@@ -149,7 +149,7 @@ def deplacement_maillons_vector(x, y, etat, v_plus, R_plus, R_moins, mode='perpe
     #masque pour eviter division par zero si jamais un point est proche du barycentre
     nonzero = distance > 0
     # tableau des vitesses
-    v_moins = vitesse_moins(distance, R_plus, R_moins, v_plus)
+    v_moins = vitesse_moins(distance, v_plus, R_plus, R_moins)
     # vecteurs de deplacement
     vecteur_x_moins[nonzero] = - v_moins[nonzero] * dx_G[nonzero] / distance[nonzero]
     vecteur_y_moins[nonzero] = - v_moins[nonzero] * dy_G[nonzero] / distance[nonzero]
@@ -223,12 +223,20 @@ les maillons les plus eloignes ('distance').
 def elimination_boucles(x, y, etat, xG, yG, R_plus, R_moins, V, mode_reinsertion="random"):
     
     # Parametres
+    seuil = 1e-12  # seuil pour éviter les fausses boucles
     N = len(x)
-    x = list(x) # on peux pop() un élément dans une liste 
+
+    # Copie en liste
+    x = list(x)
     y = list(y)
     etat = list(etat)
 
-    candidats = []  # indices à supprimer
+    # Copie des états initiaux 
+    etat_orig = etat.copy()
+    x_orig = x.copy()
+    y_orig = y.copy()
+
+    candidats = []  # indices des maillons à supprimer
 
     # Recherche des boucles
     i = 0
@@ -237,7 +245,7 @@ def elimination_boucles(x, y, etat, xG, yG, R_plus, R_moins, V, mode_reinsertion
         M2 = (i + 1) % len(x)
         produit_vect = signe_angle(x[M1], y[M1], x[M2], y[M2], xG, yG)
 
-        if produit_vect < 0:
+        if produit_vect < -seuil:
             candidats.append(M2)
             x.pop(M2)
             y.pop(M2)
@@ -247,10 +255,13 @@ def elimination_boucles(x, y, etat, xG, yG, R_plus, R_moins, V, mode_reinsertion
 
     # Si pas de boucle
     if len(candidats) == 0:
+        print("Pas de boucles")
         return np.array(x), np.array(y), np.array(etat)
+    
 
     # Nombre de maillons restants
     N_sans_boucles = len(x)
+    etat_supprimes = [etat_orig[i] for i in candidats]
 
     # Réinsertion des maillons supprimes
     for k in range(len(candidats)):
@@ -282,8 +293,11 @@ def elimination_boucles(x, y, etat, xG, yG, R_plus, R_moins, V, mode_reinsertion
         distance = np.sqrt(dx_G**2 + dy_G**2)
         
         # Calcul nv etat
-        etat_reinsertion = chgmt_etat_plus(k, etat, distance, R_plus, V) if etat(k) == 1 else chgmt_etat_moins(k, etat, distance, R_moins, V)
-
+        if etat_supprimes[k] == 1:
+            etat_reinsertion = chgmt_etat_plus(k, etat, distance, R_plus, V)
+        else:
+            etat_reinsertion = chgmt_etat_moins(k, etat, distance, R_moins, V)
+            
         # Insertion
         x.insert(nv_indice, x_reinsertion)
         y.insert(nv_indice, y_reinsertion)
@@ -294,4 +308,5 @@ def elimination_boucles(x, y, etat, xG, yG, R_plus, R_moins, V, mode_reinsertion
     if N_sans_boucles != N :
         print("Erreur lors de l'elimination des boucles !")
 
+    print("Boucles")
     return np.array(x), np.array(y), np.array(etat) 
