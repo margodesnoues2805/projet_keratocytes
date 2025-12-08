@@ -30,6 +30,90 @@ def Chaine_initiale(N, R):
     
     return x, y, etat
 
+# -------------------- INITIALISATION DE LA FORME DE LA CELLULE ---------------
+
+def forme_initiale(N, forme="cercle", R=1.0, epsilon=0.2):
+    """
+    Génère une forme initiale :
+    - cercle
+    - etoile
+    - polygone_complexe
+    - asymetrie (portion en protusion, portion en rétraction)
+    - polarisee (goutte / kératocyte)
+    - coeur
+    """
+    
+    angles = np.linspace(0, 2*np.pi, N, endpoint=False)
+
+    # ------------------------------- 1) CERCLE -------------------------------
+    if forme == "cercle":
+        r = R * np.ones(N)
+
+
+    # ------------------------------- 2) ÉTOILE -------------------------------
+    elif forme == "etoile":
+        k = 5
+        r = R * (1 + epsilon * np.cos(k * angles))
+
+
+    # ------------------------------- 3) POLYGONE COMPLEXE --------------------
+    elif forme == "polygone_complexe":
+        bruit = epsilon * np.random.randn(N)
+        r = R * (1 + bruit)
+        r = 0.5*(r + np.roll(r, 1))   # lissage
+
+
+    # --------------- 4) ASYMÉTRIQUE : moitié protusion, moitié rétraction ----
+    elif forme == "asymetrie":
+        r = R * np.ones(N)
+
+        # Portion avant (protusion)
+        avant = (angles < np.pi)  # demi-cercle
+      
+        # Portion arrière (rétraction)
+        arriere = (angles >= np.pi)
+
+        r[avant] += epsilon * R        # protusion
+        r[arriere] -= epsilon * R      # rétraction
+        
+        # sécurité : pas de rayon négatif
+        r = np.maximum(r, 0.1*R)
+
+
+    # --------------------------- 5) FORME POLARISÉE --------------------------
+    elif forme == "polarisee":
+        # Forme goutte d'eau (kératocyte polarisé)
+        r = R * (1 + epsilon * np.cos(angles))  # protusion devant
+        
+        # Avant bien marqué (protrusion)
+        # arctan = adoucit la transition
+        r *= (1 + 0.5 * np.tanh(3 * np.cos(angles)))
+
+
+    # --------------------------- 6) FORME DE COEUR ---------------------------
+    elif forme == "coeur":
+        # Équation polaire standard
+        r = R * (1 - np.sin(angles))
+
+        # On peut amplifier si tu veux un cœur plus "profond"
+        r *= (1 + epsilon)
+
+
+    # --------------------------- FORME NON RECONNUE --------------------------
+    else:
+        raise ValueError("Forme doit être : cercle / etoile / polygone_complexe / asymetrie / polarisee / coeur")
+
+
+    # ---------------------------- COORDONNÉES FINALES ------------------------
+    x = r * np.cos(angles)
+    y = r * np.sin(angles)
+
+    # États aléatoires pour commencer
+    etat = np.random.choice([-1, 1], size=N)
+
+    return x, y, etat
+
+
 #------------------CALCUL DE L'AIRE ET DU BARYCENTRE------------------
 
 """
@@ -255,7 +339,7 @@ def elimination_boucles(x, y, etat, xG, yG, R_plus, R_moins, V, mode_reinsertion
 
     # Si pas de boucle
     if len(candidats) == 0:
-        print("Pas de boucles")
+        #print("Pas de boucles")
         return np.array(x), np.array(y), np.array(etat)
     
 

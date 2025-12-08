@@ -95,6 +95,15 @@ def simulate_cellule(
             aires_hist.append(aire)  # Stockage aire après élimination boucles
             bary_hist.append([[xG, yG]])
             print(f"Enregistrement à t = {temps_sec} s")
+            
+            
+     # --- BARRE DE PROGRESSION ---
+        if t % 50 == 0 or t == n_steps - 1:  # mise à jour régulière
+            progress = (t + 1) / n_steps
+            bar_len = 30
+            filled = int(progress * bar_len)
+            bar = "█" * filled + "-" * (bar_len - filled)
+            print(f"\rProgression : [{bar}] {progress*100:5.1f}% ({t+1}/{n_steps})", end="")
 
     # ===============================================================
     #   FIN DE SIMULATION : ANALYSES
@@ -136,12 +145,12 @@ L'utilisateur choisit la forme
 
 x, y, etat, aire = simulate_cellule(
     N=4096,
-    forme="cercle",      # CHOIX : "cercle", "etoile", "polygone_complexe"
+    forme="etoile",      # CHOIX : "cercle", "etoile", "polygone_complexe", "asymetrie", "polarisee", "coeur" 
     R=12.5,
     epsilon=0.2,
     R_plus=20,
     R_moins=5,
     v_plus=0.00025,
-    V=200,
-    n_steps=5000 #time step 
+    V=20,
+    n_steps=3000 #time step 
 )
