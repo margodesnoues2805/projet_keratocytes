@@ -6,8 +6,9 @@ Created on Mon Dec  8 16:01:07 2025
 @author: xuan_nguyen
 """
 
-import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation, FFMpegWriter
+import numpy as np
 
 from geometry import (
     deplacement_maillons_vector,
@@ -57,13 +58,14 @@ def simulate_cellule(
     print(f"Aire initiale={aire_initiale}")
 
     timer = 0  #compteur interne en ms 
-    temps_sec = 0 #compteur réel en s
 
     x_hist = [x.copy()]
     y_hist = [y.copy()]
     etat_hist = [etat.copy()]
     aires_hist = [aire_initiale]
     bary_hist = [[xG, yG]]
+    switch_P_to_R_hist = [] #liste pour compter le nombre de switchs de protusion à rétraction
+    switch_R_to_P_hist = [] #liste pour compter le nombre de switchs de rétraction à protusion 
 
     # ---- Boucle temporelle ----
     """"
@@ -85,16 +87,23 @@ def simulate_cellule(
         #TIMER 
         timer += 1 #avance de 1 ms 
         
-        if timer % 1000 == 0: #toutes les 1000 ms => enregistrement x, y, etat  
+        if timer % 500 == 0: #toutes les x ms => enregistrement x, y, etat  
+            
+         #compter les switchs entre l'enregistrement précédent et maintenant 
+            etat_prev = etat_hist[-1]
+            P_to_R = np.sum((etat_prev == 1) & (etat == -1)) #somme les maillons précédemment en protusion et mtn en rétraction
+            R_to_P = np.sum((etat_prev == -1) & (etat == 1)) #somme les maillons précédemment en rétraction et mtn en protusion 
             
             # Stockage des données 
-            temps_sec = temps_sec + 1 #compteur en seconde 
             x_hist.append(x.copy())
             y_hist.append(y.copy())
             etat_hist.append(etat.copy())
+            switch_P_to_R_hist.append(P_to_R)
+            switch_R_to_P_hist.append(R_to_P)
             aires_hist.append(aire)  # Stockage aire après élimination boucles
             bary_hist.append([[xG, yG]])
-            print(f"Enregistrement à t = {temps_sec} s")
+            
+            print(f"Enregistrement à t = {timer*1e-3:.3f} s")
             
             
      # --- BARRE DE PROGRESSION ---
@@ -108,12 +117,19 @@ def simulate_cellule(
     # ===============================================================
     #   FIN DE SIMULATION : ANALYSES
     # ===============================================================
+    
 
     # Aire finale
     aire_finale, xG_final, yG_final = Calcul_Aire_Barycentre(x, y)
-    print(f"\nAire finale = {aire_finale:.4f}") 
 
+    # Moyenne des aires enregistrées
+    moyenne_aire = np.mean(aires_hist)
+    ecart_type_aire = np.std(aires_hist)
 
+    print(f"\nAire finale = {aire_finale:.4f}")
+    print(f"Moyenne des aires échantillonnées = {moyenne_aire:.4f}")
+    print(f"Écart-type des aires = {ecart_type_aire:.4f}")
+    
 #   ===============================================================
     #   GRAPHIQUE FINAL
     # ===============================================================
@@ -132,8 +148,10 @@ def simulate_cellule(
     plt.title("Évolution de la cellule")
     plt.legend()
     plt.show()
+    
+    
 
-    return x_hist, y_hist, etat_hist, aires_hist
+    return x_hist, y_hist, etat_hist, aires_hist, switch_P_to_R_hist, switch_R_to_P_hist
 
 # %%===============================================================
 #   SIMULATION 
@@ -143,14 +161,22 @@ L'utilisateur choisit la forme
 """
 
 
-x, y, etat, aire = simulate_cellule(
+x_hist, y_hist, etat_hist, aires_hist, switch_P_to_R_hist, switch_R_to_P_hist = simulate_cellule(
     N=4096,
-    forme="etoile",      # CHOIX : "cercle", "etoile", "polygone_complexe", "asymetrie", "polarisee", "coeur" 
+    forme="cercle",
     R=12.5,
     epsilon=0.2,
     R_plus=20,
     R_moins=5,
-    v_plus=0.00025,
-    V=20,
-    n_steps=3000 #time step 
+    v_plus=2.5e-4,
+    V=4,
+    n_steps=200000
 )
+
+create_video(x_hist, y_hist, etat_hist, filename="cellule_cercle.mp4", fps=20)
+
+# Graphe du nombre de switchs par type
+plot_switch_distribution(switch_P_to_R_hist, switch_R_to_P_hist, dt=0.5)
+
+# Heatmap des switchs par maillon
+plot_switch_heatmap(etat_hist)

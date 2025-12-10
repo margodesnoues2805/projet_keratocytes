@@ -14,9 +14,9 @@ plt.show()
 
 "Longeur des tableaux"
 if len(x)==len(y)==len(etat):
-    print("les longeurs des tableaux sont egale.")
+    print("les longueurs des tableaux sont égales.")
 else :
-    print("Les longeurs ne sont pas egales, la fonction ne fonctionne pas.")
+    print("Les longueurs ne sont pas égales, la fonction ne fonctionne pas.")
     
 
 # %%----------------------TEST AIRE ET BARYCENTRE-----------------------
