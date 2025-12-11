@@ -1,5 +1,4 @@
 import numpy as np
-from numba import jit
 from Outils import Vitesse_moins, Signe_angle, Chgmt_etat_plus, Chgmt_etat_moins, Sauvegarde_simulation_csv
 from Visualisation import Create_video
 
@@ -105,8 +104,7 @@ def Forme_initiale(N, R=1.0, epsilon=0.2, degre_polarisation=0.5, forme="cercle"
             aire : aire du polygone fermé (float)
             xG et yG : coordonnées xG et yG du barycentre G (float)
 """
-
-@jit     
+  
 def Calcul_Aire_Barycentre(x, y):
 
     # Initialisation des variables

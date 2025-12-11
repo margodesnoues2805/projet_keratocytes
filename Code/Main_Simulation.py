@@ -1,4 +1,4 @@
-from geometry import Simulation_cellule
+from Geometry import Simulation_cellule
 from Outils import Compteur_switchs
 from Visualisation import Switch_distribution, Switch_heatmap
 
