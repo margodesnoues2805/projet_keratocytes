@@ -3,10 +3,10 @@ import matplotlib.pyplot as plt
 
 # %%------------------TEST INITIALISATION DE LA CHAINE-------------------
 
-from geometry import Chaine_initiale
+from geometry import Forme_initiale
 
 "Plot"
-x, y, etat = Chaine_initiale(100, 10)
+x, y, etat = Forme_initiale(100, 10)
 couleurs = ['g' if e == 1 else 'r' for e in etat]
 plt.scatter(x, y, c=couleurs, s=3)
 plt.gca().set_aspect('equal')
@@ -24,7 +24,7 @@ else :
 from geometry import Calcul_Aire_Barycentre
 
 "Initialisation de la chaine (aire = pi, barycentre = [0,0]) "
-x, y, etat = Chaine_initiale(50, 1)
+x, y, etat = Forme_initiale(50, 1)
 
 "Test de la fonction"
 aire_test, xG_test, yG_test = Calcul_Aire_Barycentre(x, y)
@@ -36,7 +36,7 @@ print(f"Le barycentre est en : G = [{xG_test:.2f}, {yG_test:.2f}]")
 
 import matplotlib.pyplot as plt
 
-from geometry import Chaine_initiale, deplacement_maillons_vector
+from geometry import Forme_initiale, deplacement_maillons_vector
 
 # Parametres
 N = 30              # nombre de maillons
@@ -48,7 +48,7 @@ n_steps = 1      # nombre de pas de temps
 
 
 # Initialisation
-x, y, etat = Chaine_initiale(N, R)
+x, y, etat = Forme_initiale(N, R)
 
 print("Positions initiales (x, y) :")
 print(np.column_stack((x, y)))
@@ -90,7 +90,7 @@ print(np.column_stack((x, y)))
 
 import matplotlib.pyplot as plt
 
-from geometry import Chaine_initiale, deplacement_maillons_vector, changement_etat
+from geometry import Forme_initiale, deplacement_maillons_vector, changement_etat
 
 # Parametres
 V = 2
@@ -103,7 +103,7 @@ n_steps = 3   # nombre de pas de temps
 
 
 # Initialisation
-x, y, etat = Chaine_initiale(N, R)
+x, y, etat = Forme_initiale(N, R)
 
 print("Positions initiales (x, y) et etat :")
 print(np.column_stack((x, y, etat)))
@@ -159,7 +159,7 @@ print(np.column_stack((x, y, etat, distance_hist[-1])))
 
 import matplotlib.pyplot as plt
 
-from geometry import Chaine_initiale, deplacement_maillons_vector, changement_etat
+from geometry import Forme_initiale, deplacement_maillons_vector, changement_etat
 
 "Parametres"
 
@@ -173,7 +173,7 @@ n_steps = 1   # nombre de pas de temps
 
 " Initialisation "
 
-x, y, etat = Chaine_initiale(N, R)
+x, y, etat = Forme_initiale(N, R)
 print("Positions initiales (x, y) et etat :")
 print(np.column_stack((x, y, etat)))
 
@@ -230,7 +230,7 @@ print(np.column_stack((x, y, etat, distance_hist[-1])))
 
 import matplotlib.pyplot as plt
 
-from geometry import Chaine_initiale, deplacement_maillons_vector, changement_etat, elimination_boucles
+from geometry import Forme_initiale, deplacement_maillons_vector, changement_etat, elimination_boucles
 
 "Parametres"
 
@@ -245,7 +245,7 @@ n_steps = 100   # nombre de pas de temps
 
 " Initialisation "
 
-x, y, etat = Chaine_initiale(N, R)
+x, y, etat = Forme_initiale(N, R)
 print("Positions initiales (x, y) et etat :")
 print(np.column_stack((x, y, etat)))
 
