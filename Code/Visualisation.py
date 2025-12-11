@@ -37,19 +37,17 @@ def Create_video(x_hist, y_hist, etat_hist, bary_hist, fps=30, buffer=5, filenam
     # Creation de la figure
     fig, ax = plt.subplots(figsize=(7,7))
     writer = FFMpegWriter(fps=fps)
+    full_path = filename + ".mp4"
     
-    # Couleurs selon état
-    couleurs_hist = [["g" if e == 1 else "r" for e in etat_hist[frame]] for frame in range(len(etat_hist))]
-
     print(f"Création de la vidéo : {filename}")
 
     # CREATION DE LA VIDEO
-    with writer.saving(fig, filename + "_video", dpi=200):
+    with writer.saving(fig, full_path, dpi=200):
         for frame in range(len(x_hist)):
             ax.clear()
             
             # Maillons
-            couleurs = couleurs_hist[frame]
+            couleurs = ["g" if e==1 else "r" for e in etat_hist[frame]]
             ax.scatter(x_hist_arr[frame], y_hist_arr[frame], c=couleurs, s=10)
             ax.plot(list(x_hist_arr[frame]) + [x_hist_arr[frame][0]],list(y_hist_arr[frame]) + [y_hist_arr[frame][0]],"k-", linewidth=1)
 

@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 # %%------------------TEST INITIALISATION DE LA CHAINE-------------------
 
-from geometry import Forme_initiale
+from Geometry import Forme_initiale
 
 "Plot"
 x, y, etat = Forme_initiale(100, 10)
@@ -21,7 +21,7 @@ else :
 
 # %%----------------------TEST AIRE ET BARYCENTRE-----------------------
 
-from geometry import Calcul_Aire_Barycentre
+from Geometry import Calcul_Aire_Barycentre
 
 "Initialisation de la chaine (aire = pi, barycentre = [0,0]) "
 x, y, etat = Forme_initiale(50, 1)
@@ -36,15 +36,15 @@ print(f"Le barycentre est en : G = [{xG_test:.2f}, {yG_test:.2f}]")
 
 import matplotlib.pyplot as plt
 
-from geometry import Forme_initiale, deplacement_maillons_vector
+from Geometry import Forme_initiale, Deplacement_maillons_vecteurs
 
 # Parametres
 N = 30              # nombre de maillons
-R = 1         # rayon initial
-R_plus = 3     # rayon max de protusion
-R_moins = 0.5     # rayon min de retraction
+R = 1               # rayon initial
+R_plus = 3          # rayon max de protusion
+R_moins = 0.5       # rayon min de retraction
 v_plus = 1.0        # vitesse des protrusions
-n_steps = 1      # nombre de pas de temps
+n_steps = 1         # nombre de pas de temps
 
 
 # Initialisation
@@ -61,7 +61,7 @@ y_hist = [y.copy()]
 
 # Boucle de deplacement 
 for t in range(n_steps):
-    x, y, aire, xG, yG = deplacement_maillons_vector(x, y, etat, v_plus, R_plus, R_moins, mode='centrifuge')
+    x, y, aire, xG, yG = Deplacement_maillons_vecteurs(x, y, etat, v_plus, R_plus, R_moins, mode='centrifuge')
     x_hist.append(x.copy())
     y_hist.append(y.copy())
 
@@ -90,16 +90,16 @@ print(np.column_stack((x, y)))
 
 import matplotlib.pyplot as plt
 
-from geometry import Forme_initiale, deplacement_maillons_vector, changement_etat
+from Geometry import Forme_initiale,Deplacement_maillons_vecteurs, Changement_etat
 
 # Parametres
-V = 2
+V = 2               # plus proches voisins
 N = 30              # nombre de maillons
-R = 1          # rayon initial
-R_plus = 3      # rayon max de protusion
-R_moins = 0.2     # rayon min de retraction
-v_plus = 0.1       # vitesse des protrusions
-n_steps = 3   # nombre de pas de temps
+R = 1               # rayon initial
+R_plus = 3          # rayon max de protusion
+R_moins = 0.2       # rayon min de retraction
+v_plus = 0.1        # vitesse des protrusions
+n_steps = 3         # nombre de pas de temps
 
 
 # Initialisation
@@ -116,14 +116,14 @@ distance_hist = [1] * len(x)
 
 # Boucle de deplacement 
 for t in range(n_steps):
-    x, y, aire, xG, yG = deplacement_maillons_vector(x, y, etat, v_plus, R_plus, R_moins, mode='centrifuge')
+    x, y, aire, xG, yG = Deplacement_maillons_vecteurs(x, y, etat, v_plus, R_plus, R_moins, mode='centrifuge')
     x_hist.append(x.copy())
     y_hist.append(y.copy())
     dx_G_new = x - xG
     dy_G_new = y - yG
     distance_new = np.sqrt(dx_G_new**2 + dy_G_new**2)
     distance_hist.append(distance_new.copy())
-    etat = changement_etat(x, y, etat, R_plus, R_moins, xG, yG, V)
+    etat = Changement_etat(x, y, etat, R_plus, R_moins, xG, yG, V)
     etat_hist.append(etat.copy())
 
 # Affichage deplacements
@@ -159,17 +159,17 @@ print(np.column_stack((x, y, etat, distance_hist[-1])))
 
 import matplotlib.pyplot as plt
 
-from geometry import Forme_initiale, deplacement_maillons_vector, changement_etat
+from Geometry import Forme_initiale, Deplacement_maillons_vecteurs, Changement_etat
 
 "Parametres"
 
-V = 2
+V = 2               # plus proches voisins
 N = 30              # nombre de maillons
-R = 1          # rayon initial
-R_plus = 3      # rayon max de protusion
-R_moins = 0.1    # rayon min de retraction
-v_plus = 0.1       # vitesse des protrusions
-n_steps = 1   # nombre de pas de temps
+R = 1               # rayon initial
+R_plus = 3          # rayon max de protusion
+R_moins = 0.1       # rayon min de retraction
+v_plus = 0.1        # vitesse des protrusions
+n_steps = 1         # nombre de pas de temps
 
 " Initialisation "
 
@@ -188,7 +188,7 @@ distance_hist = [1] * len(x)
 
 for t in range(n_steps):
     #deplacement
-    x, y, aire, xG, yG = deplacement_maillons_vector(x, y, etat, v_plus, R_plus, R_moins, mode='centrifuge')
+    x, y, aire, xG, yG = Deplacement_maillons_vecteurs(x, y, etat, v_plus, R_plus, R_moins, mode='centrifuge')
     x_hist.append(x.copy())
     y_hist.append(y.copy())
     # dstance
@@ -197,7 +197,7 @@ for t in range(n_steps):
     distance_new = np.sqrt(dx_G_new**2 + dy_G_new**2)
     distance_hist.append(distance_new.copy())
     #changement etat
-    etat = changement_etat(x, y, etat, R_plus, R_moins, xG, yG, V)
+    etat = Changement_etat(x, y, etat, R_plus, R_moins, xG, yG, V)
     etat_hist.append(etat.copy())
 
 " Affichage deplacements "
@@ -230,17 +230,17 @@ print(np.column_stack((x, y, etat, distance_hist[-1])))
 
 import matplotlib.pyplot as plt
 
-from geometry import Forme_initiale, deplacement_maillons_vector, changement_etat, elimination_boucles
+from Geometry import Forme_initiale, Deplacement_maillons_vecteurs, Changement_etat, Elimination_boucles
 
 "Parametres"
 
-V = 2
+V = 2               # plus proche voisins
 N = 30              # nombre de maillons
-R = 1          # rayon initial
-R_plus = 3      # rayon max de protusion
-R_moins = 0.1    # rayon min de retraction
-v_plus = 0.1      # vitesse des protrusions
-n_steps = 100   # nombre de pas de temps
+R = 1               # rayon initial
+R_plus = 3          # rayon max de protusion
+R_moins = 0.1       # rayon min de retraction
+v_plus = 0.1        # vitesse des protrusions
+n_steps = 100       # nombre de pas de temps
 
 
 " Initialisation "
@@ -260,13 +260,13 @@ etat_hist = [etat.copy()]
 for t in range(n_steps):
     
     # Déplacement
-    x, y, aire, xG, yG = deplacement_maillons_vector(x, y, etat, v_plus, R_plus, R_moins, mode='centrifuge')
+    x, y, aire, xG, yG = Deplacement_maillons_vecteurs(x, y, etat, v_plus, R_plus, R_moins, mode='perpendiculaire')
 
     # Changement d'état
-    etat = changement_etat(x, y, etat, R_plus, R_moins, xG, yG, V)
+    etat = Changement_etat(x, y, etat, R_plus, R_moins, xG, yG, V)
 
     #  ELIMINATION DES BOUCLES AVANT DE CONTINUER 
-    x, y, etat = elimination_boucles(x, y, etat, xG, yG, R_plus, R_moins, V, mode_reinsertion="random")
+    x, y, etat = Elimination_boucles(x, y, etat, xG, yG, R_plus, R_moins, V, mode_reinsertion="random")
 
     # Sauvegarde des positions et etat apres elimination boucles
     x_hist.append(x.copy())

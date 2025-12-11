@@ -523,7 +523,7 @@ def Simulation_cellule(N= 50, R= 1.0, epsilon= 0.2, degre_polarisation=0.0, R_pl
    
     # 5) AFFICHAGE DE LA VIDEO
    
-    Create_video(x_hist, y_hist, etat_hist, bary_hist, fps=30, buffer=5, filename= filename + "_video")
+    Create_video(x_hist, y_hist, etat_hist, bary_hist, fps=30, buffer=5, filename= filename + "_video.mp4")
    
    
     return x_hist, y_hist, etat_hist, bary_hist, aire_hist 
