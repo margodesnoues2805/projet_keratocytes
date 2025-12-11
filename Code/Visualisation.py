@@ -86,7 +86,7 @@ def Create_video(x_hist, y_hist, etat_hist, bary_hist, fps=30, buffer=5, filenam
  * Un pas d'enregistrement =  500 pas de temps (1 ms) = 0.5 s
 """
 
-def Switch_distribution(plus_vers_moins, moins_vers_plus, dt=0.5, name = "figure.png"):
+def Switch_distribution(plus_vers_moins, moins_vers_plus, dt=0.5, filename = "figure"):
    
     # Data
     frames = np.arange(len(plus_vers_moins))
@@ -103,7 +103,7 @@ def Switch_distribution(plus_vers_moins, moins_vers_plus, dt=0.5, name = "figure
     plt.ylabel("Nombre de switchs")
     plt.legend()
     plt.grid(True)
-    plt.savefig("figure.png")
+    plt.savefig(filename + "_distribution_switch.pdf")
     plt.show()
    
    
@@ -122,7 +122,7 @@ def Switch_distribution(plus_vers_moins, moins_vers_plus, dt=0.5, name = "figure
  * Un pas d'enregistrement =  500 pas de temps (1 ms) = 0.5 s
 """
 
-def Switch_heatmap(etat_hist, name = "figure.png"):
+def Switch_heatmap(etat_hist, filename = "figure"):
 
     # Data
     N = len(etat_hist[0])
@@ -142,6 +142,6 @@ def Switch_heatmap(etat_hist, name = "figure.png"):
     plt.xlabel("Temps (frame)")
     plt.ylabel("Index maillon")
     plt.title("Heatmap des switchs de maillon au cours du temps")
-    plt.savefig("figure.png")
+    plt.savefig(filename + "heatmap_switch.pdf")
     plt.show()
 

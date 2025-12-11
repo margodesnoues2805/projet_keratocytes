@@ -314,8 +314,6 @@ def Elimination_boucles(x, y, etat, xG, yG, R_plus, R_moins, V, mode_reinsertion
 
     # Copie des états initiaux 
     etat_orig = etat.copy()
-    x_orig = x.copy()
-    y_orig = y.copy()
 
     # Indices des maillons à supprimer
     candidats = []  
@@ -400,7 +398,7 @@ def Elimination_boucles(x, y, etat, xG, yG, R_plus, R_moins, V, mode_reinsertion
 
 #---------------------BOUCLE COMPLETE DU MODELE----------------------
 
- """
+"""
  Simulation complète de la migration du kératocyte :
 
 1) Initialisation de la cellule : 
@@ -447,10 +445,10 @@ def Elimination_boucles(x, y, etat, xG, yG, R_plus, R_moins, V, mode_reinsertion
     et affiche et enregistre la vidéo.
 """
 
-def simulate_cellule(N= 50, R= 1.0, epsilon= 0.2, degre_polarisation=0.0, R_plus= 3.0, R_moins= 0.5, v_plus= 0.1, V= 2, n_steps= 40, forme= "cercle", mode="centrifuge", filename: "simulation1"):
+def Simulation_cellule(N= 50, R= 1.0, epsilon= 0.2, degre_polarisation=0.0, R_plus= 3.0, R_moins= 0.5, v_plus= 0.1, V= 2, n_steps= 40, forme= "cercle", mode="centrifuge", filename= "simulation1"):
 
     # 1) INITIALISATION DE LA CELLULE
-    x, y, etat = forme_initiale(N, forme=forme, R=R, epsilon=epsilon)
+    x, y, etat = Forme_initiale(N, forme=forme, R=R, epsilon=epsilon)
     aire_initiale, xG, yG = Calcul_Aire_Barycentre(x, y)
     print(f"Aire initiale={aire_initiale}")
  
@@ -461,23 +459,21 @@ def simulate_cellule(N= 50, R= 1.0, epsilon= 0.2, degre_polarisation=0.0, R_plus
     x_hist = [x.copy()]
     y_hist = [y.copy()]
     etat_hist = [etat.copy()]
-    aires_hist = [aire_initiale]
+    aire_hist = [aire_initiale]
     bary_hist = [[xG, yG]]
-    switch_P_to_R_hist = []
-    switch_R_to_P_hist = []
    
 
     # 2) BOUCLE AVEC n PAS D'ITERATIONS   
     for t in range(n_steps):
         
         # Déplacement
-        x, y, aire, xG, yG = deplacement_maillons_vector(x, y, etat, v_plus, R_plus, R_moins, mode="centrifuge")
+        x, y, aire, xG, yG = Deplacement_maillons_vecteurs(x, y, etat, v_plus, R_plus, R_moins, mode="centrifuge")
 
         # Changement d’état
-        etat = changement_etat(x, y, etat, R_plus, R_moins, xG, yG, V)
+        etat = Changement_etat(x, y, etat, R_plus, R_moins, xG, yG, V)
 
         # Élimination boucles
-        x, y, etat = elimination_boucles(x, y, etat, xG, yG, R_plus, R_moins, V)
+        x, y, etat = Elimination_boucles(x, y, etat, xG, yG, R_plus, R_moins, V)
         
         # Compteur
         timer += 1 
@@ -492,7 +488,7 @@ def simulate_cellule(N= 50, R= 1.0, epsilon= 0.2, degre_polarisation=0.0, R_plus
             x_hist.append(x.copy())
             y_hist.append(y.copy())
             etat_hist.append(etat.copy())
-            aires_hist.append(aire)
+            aire_hist.append(aire)
             bary_hist.append([xG, yG])  
            
             print(f"Enregistrement à t = {timer*1e-3:.3f} s")
@@ -520,4 +516,4 @@ def simulate_cellule(N= 50, R= 1.0, epsilon= 0.2, degre_polarisation=0.0, R_plus
     Create_video(x_hist, y_hist, etat_hist, bary_hist, fps=30, buffer=5, filename= filename + "_video")
    
    
-    return x_hist, y_hist, etat_hist, aires_hist, bary_hist, switch_P_to_R_hist, switch_R_to_P_hist
+    return x_hist, y_hist, etat_hist, bary_hist, aire_hist 

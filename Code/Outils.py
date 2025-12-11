@@ -187,7 +187,7 @@ def Compteur_switchs(etat_hist):
 
 def Sauvegarde_simulation_csv(x_hist, y_hist, etat_hist, bary_hist, aire_hist, filename="simulation"):
     
-    # Conversion en arrays
+    # Conversion en array
     x_arr = np.array(x_hist)    
     y_arr = np.array(y_hist)
     et_arr = np.array(etat_hist)
