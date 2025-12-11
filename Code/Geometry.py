@@ -507,7 +507,19 @@ def Simulation_cellule(N= 50, R= 1.0, epsilon= 0.2, degre_polarisation=0.0, R_pl
     print(f"\nAire finale = {aire_finale:.4f}")
     
     # Sauvegarde
-    Sauvegarde_simulation_csv(x_hist, y_hist, etat_hist, bary_hist, aire_hist, filename=filename)
+    data_x_y_etat = []
+    for t in range(len(x_hist)):
+        N_t= len(x_hist[t])
+        for i in range(N_t):
+            data_x_y_etat.append([t,i,x_hist[t][i], y_hist[t][i], etat_hist[t][i]])
+    np.savetxt(filename + "_tableau_x_y_etat.csv", data_x_y_etat, delimiter = ";", fmt ="%.3f", header= "t, index, x, y, etat")
+         
+    data_aire_bary = []
+    for t in range(len(aire_hist)):
+        xG_t, yG_t= bary_hist[t]
+        aire_t= aire_hist[t]
+        data_aire_bary.append([t,aire_t, xG_t, yG_t])
+    np.savetxt(filename + "_tableau_aire_bary.csv", data_aire_bary, delimiter = ";", fmt ="%.3f", header= "t, aire, xG, yG")
    
     # 5) AFFICHAGE DE LA VIDEO
    
